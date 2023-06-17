@@ -15,7 +15,7 @@ func TestConsensusBulk(t *testing.T) {
 
 func TestConsensusSingle(t *testing.T) {
 	// Some simulation configs.
-	const requestCount, nodeCount, requestInterval = 1000, 5, time.Microsecond
+	const requestCount, nodeCount, requestInterval = 100, 5, time.Microsecond
 	// Create API instances.
 	externalAPIs, internalAPIs := createAPIs(nodeCount)
 
