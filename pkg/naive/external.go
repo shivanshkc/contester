@@ -1,23 +1,28 @@
-package api
+package naive
 
 import (
+	"consim/pkg/utils"
 	"errors"
 	"fmt"
 )
 
-// ExternalSimpleMajority implements the External interface using the simple majority approach.
+// External implements the simulation.External interface using the naive majority approach.
 // Read the method descriptions to understand the algorithm.
 //
 // Note that this implementation does NOT guarantee consensus.
-type ExternalSimpleMajority struct {
+type External struct {
 	InternalAPIs []*Internal
+}
+
+func NewExternal(internalAPIs []*Internal) *External {
+	return &External{InternalAPIs: internalAPIs}
 }
 
 // Get collects the state from all the internal APIs.
 // If a majority of calls fail, the operation is considered failed.
 // Otherwise, if a single value exists on a majority of nodes, it is considered valid state and returned.
 // Otherwise, a consensus error is returned.
-func (e *ExternalSimpleMajority) Get() (string, error) {
+func (e *External) Get() (string, error) {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan func() (any, error), len(e.InternalAPIs))
 	defer close(respChan)
@@ -57,7 +62,7 @@ func (e *ExternalSimpleMajority) Get() (string, error) {
 	}
 
 	// Get the smallest majority number.
-	smMajority := getSmallestMajority(len(e.InternalAPIs))
+	smMajority := utils.GetSmallestMajority(len(e.InternalAPIs))
 	// If a majority of calls failed, the operation is failed.
 	if len(errs) >= smMajority {
 		return "", errors.Join(errs...)
@@ -77,7 +82,7 @@ func (e *ExternalSimpleMajority) Get() (string, error) {
 // Set sets the state on all the internal APIs.
 // If a majority of calls fail, the operation is considered failed.
 // Otherwise, the operation is considered successful.
-func (e *ExternalSimpleMajority) Set(state string) error {
+func (e *External) Set(state string) error {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan error, len(e.InternalAPIs))
 	defer close(respChan)
@@ -102,7 +107,7 @@ func (e *ExternalSimpleMajority) Set(state string) error {
 	}
 
 	// Get the smallest majority number.
-	smMajority := getSmallestMajority(len(e.InternalAPIs))
+	smMajority := utils.GetSmallestMajority(len(e.InternalAPIs))
 	// If a majority of calls failed, the operation is failed.
 	if len(errs) >= smMajority {
 		return errors.Join(errs...)

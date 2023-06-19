@@ -1,7 +1,8 @@
-package api_test
+package simulation_test
 
 import (
-	"consim/pkg/api"
+	"consim/pkg/naive"
+	"consim/pkg/simulation"
 	"time"
 
 	"github.com/goombaio/namegenerator"
@@ -17,17 +18,23 @@ func getRandomValue() string {
 
 // createAPIs creates and returns the given number of External and Internal API instances.
 // It adds simulation parameters to the InternalAPIs and attaches them to the ExternalAPIs.
-func createAPIs(nodeCount int) ([]api.External, []*api.Internal) {
-	external, internal := make([]api.External, nodeCount), make([]*api.Internal, nodeCount)
+func createAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
+	external, internal := make([]simulation.External, nodeCount), make([]simulation.Internal, nodeCount)
+	internalConcrete := make([]*naive.Internal, nodeCount)
 
 	// Create internal APIs.
 	for i := 0; i < nodeCount; i++ {
-		internal[i] = api.NewInternal(0.25, time.Microsecond, 100*time.Microsecond)
+		inter := naive.NewInternal()
+		inter.SetNetworkFailureProbability(0.25)
+		inter.SetNetworkPerformance(time.Microsecond, time.Millisecond)
+		inter.SetClockOffset(time.Millisecond)
+
+		internal[i], internalConcrete[i] = inter, inter
 	}
 
 	// Create external APIs.
 	for i := 0; i < nodeCount; i++ {
-		external[i] = &api.ExternalSimpleMajority{InternalAPIs: internal}
+		external[i] = naive.NewExternal(internalConcrete)
 	}
 
 	return external, internal
@@ -35,8 +42,10 @@ func createAPIs(nodeCount int) ([]api.External, []*api.Internal) {
 
 // noArtificialFailures updates all the given Internal APIs so that there
 // are no artificial failures or delays in their working.
-func noArtificialFailures(inAPIs []*api.Internal) {
+func noArtificialFailures(inAPIs []simulation.Internal) {
 	for _, inAPI := range inAPIs {
-		inAPI.UpdateArtificialFailureParams(0, 0, 0)
+		inAPI.SetNetworkFailureProbability(0)
+		inAPI.SetNetworkPerformance(0, 0)
+		inAPI.SetClockOffset(0)
 	}
 }

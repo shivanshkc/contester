@@ -1,4 +1,4 @@
-package api_test
+package simulation_test
 
 import (
 	"testing"
