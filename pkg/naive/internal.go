@@ -1,7 +1,7 @@
 package naive
 
 import (
-	"consim/pkg/utils"
+	"contester/pkg/utils"
 	"fmt"
 	"sync"
 	"time"

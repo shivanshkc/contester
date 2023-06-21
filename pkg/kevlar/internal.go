@@ -1,7 +1,7 @@
 package kevlar
 
 import (
-	"consim/pkg/utils"
+	"contester/pkg/utils"
 	"errors"
 	"fmt"
 	"sync"

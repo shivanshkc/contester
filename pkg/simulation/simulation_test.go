@@ -17,7 +17,7 @@ func TestConsensusSingle(t *testing.T) {
 	// Some simulation configs.
 	const requestCount, nodeCount, requestInterval = 100, 5, time.Microsecond
 	// Create API instances.
-	externalAPIs, internalAPIs := createAPIs(nodeCount)
+	externalAPIs, internalAPIs := naiveAPIs(nodeCount)
 
 	// The channel that will receive all responses from the system.
 	responseChan := make(chan func() (string, error), requestCount)

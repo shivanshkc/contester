@@ -1,3 +1,3 @@
-# Consensus Simulator
+# Contester
 
-A program that tests any cosensus algorithm implementation by running it in simulated network partitions and faults.
+A program that tests any consensus algorithm implementation by running it in simulated network partitions and faults.

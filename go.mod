@@ -1,4 +1,4 @@
-module consim
+module contester
 
 go 1.20
 
