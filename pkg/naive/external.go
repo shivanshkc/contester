@@ -39,7 +39,7 @@ func (e *External) Get() (string, error) {
 	// If they are in majority, the operation will be considered failed
 	// and the joined error will be returned.
 	var errs []error
-	// This will map different state values to their occurence count.
+	// This will map different state values to their occurrence count.
 	// We need a single value to exist in majority for it to be the agreed upon state value.
 	valueCounts := map[string]int{}
 
@@ -57,7 +57,7 @@ func (e *External) Get() (string, error) {
 			panic("value is not a string, this is unexpected")
 		}
 
-		// Increase the value occurence count.
+		// Increase the value occurrence count.
 		valueCounts[valueStr]++
 	}
 

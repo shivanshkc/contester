@@ -1,7 +1,7 @@
 package simulation_test
 
 import (
-	"consim/pkg/naive"
+	"consim/pkg/kevlar"
 	"consim/pkg/simulation"
 	"time"
 
@@ -20,12 +20,12 @@ func getRandomValue() string {
 // It adds simulation parameters to the InternalAPIs and attaches them to the ExternalAPIs.
 func createAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
 	external, internal := make([]simulation.External, nodeCount), make([]simulation.Internal, nodeCount)
-	internalConcrete := make([]*naive.Internal, nodeCount)
+	internalConcrete := make([]*kevlar.Internal, nodeCount)
 
 	// Create internal APIs.
 	for i := 0; i < nodeCount; i++ {
-		inter := naive.NewInternal()
-		inter.SetNetworkFailureProbability(0.25)
+		inter := kevlar.NewInternal()
+		inter.SetNetworkFailureProbability(0.1)
 		inter.SetNetworkPerformance(time.Microsecond, time.Millisecond)
 		inter.SetClockOffset(time.Millisecond)
 
@@ -34,7 +34,7 @@ func createAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
 
 	// Create external APIs.
 	for i := 0; i < nodeCount; i++ {
-		external[i] = naive.NewExternal(internalConcrete)
+		external[i] = kevlar.NewExternal(internalConcrete)
 	}
 
 	return external, internal

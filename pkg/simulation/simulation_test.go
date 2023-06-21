@@ -23,7 +23,7 @@ func TestConsensusSingle(t *testing.T) {
 	responseChan := make(chan func() (string, error), requestCount)
 	defer close(responseChan)
 
-	// Call the external API in round robin requestCount-times.
+	// Call the external API in round-robin requestCount-times.
 	for i := 0; i < requestCount; i++ {
 		go func(i int) {
 			// This is the nodeIndex that ensures round-robin invocations.
@@ -63,7 +63,8 @@ func TestConsensusSingle(t *testing.T) {
 	// Verify the state.
 	if currentState != expectedState {
 		t.Errorf("expected final state to be: %s, but got: %s", expectedState, currentState)
+		return
 	}
 
-	t.Logf("Consensus maintained. Expected state = Final state = %s", currentState)
+	t.Logf("Consensus maintained. Expected state = Final state = %s", expectedState)
 }
