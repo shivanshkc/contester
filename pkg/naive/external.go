@@ -116,3 +116,11 @@ func (e *External) Set(state string) error {
 	// The operation was a success.
 	return nil
 }
+
+func (e *External) IdealOperation() {
+	for _, iAPI := range e.InternalAPIs {
+		iAPI.SetNetworkFailureProbability(0)
+		iAPI.SetNetworkPerformance(0, 0)
+		iAPI.SetClockOffset(0)
+	}
+}

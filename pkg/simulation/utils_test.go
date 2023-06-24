@@ -10,7 +10,7 @@ import (
 )
 
 // kevlarAPIs creates and returns the given number of External and Internal API instances of Kevlar.
-func kevlarAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
+func kevlarAPIs(nodeCount int) []simulation.External {
 	external, internal := make([]simulation.External, nodeCount), make([]simulation.Internal, nodeCount)
 	internalConcrete := make([]*kevlar.Internal, nodeCount)
 
@@ -29,11 +29,11 @@ func kevlarAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
 		external[i] = kevlar.NewExternal(internalConcrete)
 	}
 
-	return external, internal
+	return external
 }
 
 // naiveAPIs creates and returns the given number of External and Internal API instances of Naive.
-func naiveAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
+func naiveAPIs(nodeCount int) []simulation.External {
 	external, internal := make([]simulation.External, nodeCount), make([]simulation.Internal, nodeCount)
 	internalConcrete := make([]*naive.Internal, nodeCount)
 
@@ -52,7 +52,7 @@ func naiveAPIs(nodeCount int) ([]simulation.External, []simulation.Internal) {
 		external[i] = naive.NewExternal(internalConcrete)
 	}
 
-	return external, internal
+	return external
 }
 
 // _nameGen generates random readable values.
@@ -63,12 +63,10 @@ func getRandomValue() string {
 	return _nameGen.Generate()
 }
 
-// noArtificialFailures updates all the given Internal APIs so that there
+// idealOperationAll updates all the given External APIs so that there
 // are no artificial failures or delays in their working.
-func noArtificialFailures(inAPIs []simulation.Internal) {
-	for _, inAPI := range inAPIs {
-		inAPI.SetNetworkFailureProbability(0)
-		inAPI.SetNetworkPerformance(0, 0)
-		inAPI.SetClockOffset(0)
+func idealOperationAll(eAPIs []simulation.External) {
+	for _, eAPI := range eAPIs {
+		eAPI.IdealOperation()
 	}
 }

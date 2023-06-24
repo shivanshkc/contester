@@ -275,3 +275,11 @@ func (e *External) unlockAll(lockID string) []error {
 
 	return errs
 }
+
+func (e *External) IdealOperation() {
+	for _, iAPI := range e.InternalAPIs {
+		iAPI.SetNetworkFailureProbability(0)
+		iAPI.SetNetworkPerformance(0, 0)
+		iAPI.SetClockOffset(0)
+	}
+}

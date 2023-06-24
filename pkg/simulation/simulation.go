@@ -10,6 +10,9 @@ type External interface {
 	Get() (string, error)
 	// Set sets the state of the system.
 	Set(string) error
+
+	// IdealOperation sets all failure probabilities to zero.
+	IdealOperation()
 }
 
 // Internal represents a mock internal API of node in the system.

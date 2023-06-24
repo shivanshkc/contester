@@ -17,7 +17,7 @@ func TestConsensusSingle(t *testing.T) {
 	// Some simulation configs.
 	const requestCount, nodeCount, requestInterval = 100, 5, time.Microsecond
 	// Create API instances.
-	externalAPIs, internalAPIs := naiveAPIs(nodeCount)
+	externalAPIs := kevlarAPIs(nodeCount)
 
 	// The channel that will receive all responses from the system.
 	responseChan := make(chan func() (string, error), requestCount)
@@ -51,7 +51,7 @@ func TestConsensusSingle(t *testing.T) {
 	}
 
 	// Remove all failure probabilities.
-	noArtificialFailures(internalAPIs)
+	idealOperationAll(externalAPIs)
 
 	// Fetch the current state of the system.
 	currentState, err := externalAPIs[0].Get()
