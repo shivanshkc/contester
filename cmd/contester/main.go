@@ -10,7 +10,7 @@ import (
 
 const (
 	// Number of nodes in the system to be tested.
-	// Feel free to change it to any number >
+	// Feel free to change it to any number > 1
 	nodeCount = 5
 
 	// Number of times the simulation should run.
