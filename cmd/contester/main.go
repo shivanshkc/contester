@@ -20,7 +20,7 @@ const (
 func main() {
 	for i := 0; i < runCount; i++ {
 		// Create new instances for every run.
-		instances := createNaiveInstances()
+		instances := createKevlarInstances()
 
 		// Run the simulation with newly created instances.
 		err := simulation.Run(simulation.QuickStartConfig, instances)
@@ -28,10 +28,10 @@ func main() {
 			panic(err)
 		}
 
-		fmt.Printf("Session %d/%d passed.\n", i+1, runCount)
+		fmt.Printf("\rSession %d/%d passed.", i+1, runCount)
 	}
 
-	fmt.Println("Consensus maintained.")
+	fmt.Println("\nConsensus maintained.")
 }
 
 func createNaiveInstances() []simulation.ExternalAPI {
