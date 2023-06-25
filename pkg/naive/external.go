@@ -1,12 +1,13 @@
 package naive
 
 import (
+	"contester/pkg/simulation"
 	"contester/pkg/utils"
 	"errors"
 	"fmt"
 )
 
-// External implements the simulation.External interface using the naive majority approach.
+// External implements the simulation.ExternalAPI interface using the naive majority approach.
 // Read the method descriptions to understand the algorithm.
 //
 // Note that this implementation does NOT guarantee consensus.
@@ -22,7 +23,7 @@ func NewExternal(internalAPIs []*Internal) *External {
 // If a majority of calls fail, the operation is considered failed.
 // Otherwise, if a single value exists on a majority of nodes, it is considered valid state and returned.
 // Otherwise, a consensus error is returned.
-func (e *External) Get() (string, error) {
+func (e *External) Get(ctx simulation.Context) (string, error) {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan func() (any, error), len(e.InternalAPIs))
 	defer close(respChan)
@@ -30,7 +31,7 @@ func (e *External) Get() (string, error) {
 	// Looping over all internal APIs and getting the state from them all.
 	for _, iAPI := range e.InternalAPIs {
 		go func(iAPI *Internal) {
-			value, err := iAPI.Get("state")
+			value, err := iAPI.Get(ctx, "state")
 			respChan <- func() (any, error) { return value, err }
 		}(iAPI)
 	}
@@ -82,7 +83,7 @@ func (e *External) Get() (string, error) {
 // Set sets the state on all the internal APIs.
 // If a majority of calls fail, the operation is considered failed.
 // Otherwise, the operation is considered successful.
-func (e *External) Set(state string) error {
+func (e *External) Set(ctx simulation.Context, state string) error {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan error, len(e.InternalAPIs))
 	defer close(respChan)
@@ -90,7 +91,7 @@ func (e *External) Set(state string) error {
 	// Looping over all internal APIs and setting the state on them all.
 	for _, iAPI := range e.InternalAPIs {
 		go func(iAPI *Internal) {
-			respChan <- iAPI.Set("state", state)
+			respChan <- iAPI.Set(ctx, "state", state)
 		}(iAPI)
 	}
 
@@ -115,12 +116,4 @@ func (e *External) Set(state string) error {
 
 	// The operation was a success.
 	return nil
-}
-
-func (e *External) IdealOperation() {
-	for _, iAPI := range e.InternalAPIs {
-		iAPI.SetNetworkFailureProbability(0)
-		iAPI.SetNetworkPerformance(0, 0)
-		iAPI.SetClockOffset(0)
-	}
 }

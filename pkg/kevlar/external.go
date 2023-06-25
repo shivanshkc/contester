@@ -1,6 +1,7 @@
 package kevlar
 
 import (
+	"contester/pkg/simulation"
 	"contester/pkg/utils"
 	"errors"
 	"math"
@@ -21,9 +22,9 @@ func NewExternal(internalAPIs []*Internal) *External {
 }
 
 // Get TODO
-func (e *External) Get() (string, error) {
+func (e *External) Get(ctx simulation.Context) (string, error) {
 	// Get state values from all keepers.
-	records, errs := e.getStateFromAll()
+	records, errs := e.getStateFromAll(ctx)
 	// If majority failed, end execution right away.
 	if len(errs) >= utils.GetSmallestMajority(len(e.InternalAPIs)) {
 		return "", errors.Join(errs...)
@@ -46,15 +47,15 @@ func (e *External) Get() (string, error) {
 }
 
 // Set TODO
-func (e *External) Set(state string) error {
+func (e *External) Set(ctx simulation.Context, state string) error {
 	// Generate a new lockID.
 	lockID := uuid.NewString()
 	smMajority := utils.GetSmallestMajority(len(e.InternalAPIs))
 
 	// Get state from all keepers and lock them for writing.
-	records, errs := e.getAndLockStateFromAll(lockID)
+	records, errs := e.getAndLockStateFromAll(ctx, lockID)
 	// Unlock all keepers at the end, even if setAndUnlock passes, for safety.
-	defer func() { _ = e.unlockAll(lockID) }()
+	defer func() { _ = e.unlockAll(ctx, lockID) }()
 
 	// If majority failed, end execution.
 	if len(errs) >= smMajority {
@@ -91,7 +92,7 @@ func (e *External) Set(state string) error {
 	}
 
 	// Setting the new state in all State-Keepers.
-	errSet := e.setAndUnlockStateOnAll(newState, lockID)
+	errSet := e.setAndUnlockStateOnAll(ctx, newState, lockID)
 	// If a majority of keepers reject, we consider the operation failed.
 	if len(errSet) >= smMajority {
 		return errors.Join(errSet...)
@@ -165,7 +166,7 @@ func (e *External) determineLWS(records []*record) (string, *record) {
 }
 
 // getStateFromAll gets the records from all keepers concurrently.
-func (e *External) getStateFromAll() ([]*record, []error) {
+func (e *External) getStateFromAll(ctx simulation.Context) ([]*record, []error) {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan func() (*record, error), len(e.InternalAPIs))
 	defer close(respChan)
@@ -173,7 +174,7 @@ func (e *External) getStateFromAll() ([]*record, []error) {
 	// Looping over all internal APIs and getting the state from them all.
 	for _, iAPI := range e.InternalAPIs {
 		go func(iAPI *Internal) {
-			value, err := iAPI.get("state")
+			value, err := iAPI.get(ctx, "state")
 			respChan <- func() (*record, error) { return value, err }
 		}(iAPI)
 	}
@@ -195,7 +196,7 @@ func (e *External) getStateFromAll() ([]*record, []error) {
 }
 
 // getAndLockStateFromAll gets records from all keepers concurrently and locks them for writing.
-func (e *External) getAndLockStateFromAll(lockID string) ([]*record, []error) {
+func (e *External) getAndLockStateFromAll(ctx simulation.Context, lockID string) ([]*record, []error) {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan func() (*record, error), len(e.InternalAPIs))
 	defer close(respChan)
@@ -203,7 +204,7 @@ func (e *External) getAndLockStateFromAll(lockID string) ([]*record, []error) {
 	// Looping over all internal APIs and getting the state from them all.
 	for _, iAPI := range e.InternalAPIs {
 		go func(iAPI *Internal) {
-			value, err := iAPI.getAndLock("state", lockID)
+			value, err := iAPI.getAndLock(ctx, "state", lockID)
 			respChan <- func() (*record, error) { return value, err }
 		}(iAPI)
 	}
@@ -225,7 +226,7 @@ func (e *External) getAndLockStateFromAll(lockID string) ([]*record, []error) {
 }
 
 // setAndUnlockStateOnAll sets the given record in all keepers and unlocks them for writing.
-func (e *External) setAndUnlockStateOnAll(rec *record, lockID string) []error {
+func (e *External) setAndUnlockStateOnAll(ctx simulation.Context, rec *record, lockID string) []error {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan error, len(e.InternalAPIs))
 	defer close(respChan)
@@ -233,7 +234,7 @@ func (e *External) setAndUnlockStateOnAll(rec *record, lockID string) []error {
 	// Looping over all internal APIs and getting the state from them all.
 	for i, iAPI := range e.InternalAPIs {
 		go func(i int, iAPI *Internal) {
-			respChan <- iAPI.setAndUnlock("state", rec, lockID)
+			respChan <- iAPI.setAndUnlock(ctx, "state", rec, lockID)
 		}(i, iAPI)
 	}
 
@@ -251,7 +252,7 @@ func (e *External) setAndUnlockStateOnAll(rec *record, lockID string) []error {
 }
 
 // unlockAll unlocks all keepers.
-func (e *External) unlockAll(lockID string) []error {
+func (e *External) unlockAll(ctx simulation.Context, lockID string) []error {
 	// This channel will store the result of the internal API calls.
 	respChan := make(chan error, len(e.InternalAPIs))
 	defer close(respChan)
@@ -259,7 +260,7 @@ func (e *External) unlockAll(lockID string) []error {
 	// Looping over all internal APIs and getting the state from them all.
 	for i, iAPI := range e.InternalAPIs {
 		go func(i int, iAPI *Internal) {
-			respChan <- iAPI.unlock("state", lockID)
+			respChan <- iAPI.unlock(ctx, "state", lockID)
 		}(i, iAPI)
 	}
 
@@ -274,12 +275,4 @@ func (e *External) unlockAll(lockID string) []error {
 	}
 
 	return errs
-}
-
-func (e *External) IdealOperation() {
-	for _, iAPI := range e.InternalAPIs {
-		iAPI.SetNetworkFailureProbability(0)
-		iAPI.SetNetworkPerformance(0, 0)
-		iAPI.SetClockOffset(0)
-	}
 }
